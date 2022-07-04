@@ -51,7 +51,8 @@ int http_coon::ep_fd = -1;
 const char *http_coon::docRoot = "/var/www/server";
 
 http_coon::http_coon() {
-
+	this->fileName = "/index.html";
+	this->version = "HTTP/1.1";
 }
 
 http_coon::~http_coon() {
@@ -75,7 +76,7 @@ void http_coon::init() {
 	//初始化 写相关
 	memset(this->writeBuff, 0, sizeof this->writeBuff);
 	this->writeIdx = 0;
-
+	this->canWrite = false;
 	this->bytesToSend = 0;
 	this->bytesHaveSend = 0;
 	this->iovCount = 2;
@@ -123,6 +124,7 @@ bool http_coon::read() {
 }
 
 bool http_coon::write() {
+	if(!canWrite) return false;
 	if(this->bytesToSend == 0){
 		//改为监听 读事件  并且初始化连接
 		init();
@@ -404,7 +406,7 @@ bool http_coon::addResponse(const char *format, ...) {
 }
 
 bool http_coon::addStatusLine(int status, const char * title) {
-	return addResponse("%s %d %s\r\n", "HTTP/1.1", title);
+	return addResponse("%s %d %s\r\n", "HTTP/1.1", status, title);
 }
 
 bool http_coon::addHeaders(int len) {
@@ -420,7 +422,7 @@ bool http_coon::addContentLength(int len) {
 }
 
 bool http_coon::andLinger() {
-	return addResponse("Connection: %s", (keepAlive == true) ? "keep-alive" : "close");
+	return addResponse("Connection: %s\r\n", (keepAlive == true) ? "keep-alive" : "close");
 }
 
 bool http_coon::addBlankLine() {
@@ -469,10 +471,12 @@ bool http_coon::fillResponse(http_coon::HTTP_CODE ret) {
 			addStatusLine(200, ok_200_title);
 			if(fileStat.st_size != 0){
 				addHeaders(fileStat.st_size);
+				std::cout << writeBuff;
 				iov[0].iov_len = writeIdx;
 				iov[0].iov_base = writeBuff;
 				iov[1].iov_base = fileAddress;
 				iov[1].iov_len = fileStat.st_size;
+				this->bytesToSend = iov[0].iov_len + iov[1].iov_len;
 				iovCount = 2;
 				return true;
 			}
@@ -488,6 +492,7 @@ bool http_coon::fillResponse(http_coon::HTTP_CODE ret) {
 	}
 	iov[0].iov_base = writeBuff;
 	iov[0].iov_len = writeIdx;
+	bytesToSend = iov[0].iov_len;
 	iovCount = 1;
 	return true;
 }

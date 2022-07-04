@@ -6,9 +6,11 @@
 #define MYWEBSERVER_TIMER_H
 #include <time.h>
 
+#define TIMESLOT 5
 class timer;
 struct client_data{
 	int sock_fd;
+	int ep_fd;
 	timer * t;
 };
 

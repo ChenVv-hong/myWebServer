@@ -71,7 +71,10 @@ public:
 	void close_fd();
 	//ET模式下 非阻塞读
 	bool read();
-	//ET模式下 非阻塞写
+	/**
+	 * ET模式下 非阻塞写
+	 * @return true:说明长连接不用关闭连接  false:可能是 出错 可能是 短连接 要关闭连接
+	 */
 	bool write();
 
 	//http请求解析
@@ -116,6 +119,7 @@ public:
 	struct sockaddr_in address;
 	//所有连接 都放在同一个 epoll fd上 用静态变量保存一下
 	static int ep_fd;
+	bool canWrite;
 private:
 	char readBuff[READ_BUFFER_SIZE];     //读缓冲空间
 	int readIdx;           //已近读了的最后一个字节的下一个下标
@@ -130,6 +134,7 @@ private:
 
 	CHECK_STATE checkState; //主状态机检查的状态
 	METHOD method;          //请求方法
+
 
 	//web服务器的根目录
 	static const char* docRoot;
@@ -157,5 +162,33 @@ private:
 	int iovCount;
 };
 
+
+/**
+ * 设置文件非阻塞
+ * @param fd 文件描述符
+ */
+void setNonBlock(int fd);
+/**
+ * 向epoll添加fd 设置 事件触发 已经添加的EPOLLIN | EPOLLET | EPOLLRDHUP
+ * @param ep epoll的文件描述符
+ * @param fd 需要监听的文件描述符
+ * @param oneShot 是否开启 EPOLLONESHOT
+ */
+void fdAdd(int ep, int fd, bool oneShot);
+
+/**
+ * 在epoll中移除 文件描述符 并关闭连接
+ * @param ep epoll的文件描述符
+ * @param fd 需要移除监听的文件描述符
+ */
+void fdRemove(int ep, int fd);
+
+/**
+ * 向epoll 重新修改 fd事件 已经添加的EPOLLET | EPOLLONESHOT | EPOLLRDHUP
+ * @param ep epoll的文件描述符
+ * @param fd 需要修改监听的文件描述符
+ * @param ev 监听事件
+ */
+void fdMode(int ep, int fd, int ev);
 
 #endif //MYWEBSERVER_HTTP_COON_H

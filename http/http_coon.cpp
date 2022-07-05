@@ -119,6 +119,7 @@ bool http_coon::read() {
 			readIdx += ret;
 		}
 	}
+//	std::cout << readBuff;
 	return true;
 }
 
@@ -362,7 +363,17 @@ http_coon::HTTP_CODE http_coon::doRequest() {
 	std::string realPath;
 	realPath.append(this->docRoot);
 	if(method == POST){
-		//TODO 判断是登陆请求 还是 是注册请求 然后进行操作
+		if(strcmp(fileName, "/login.html") == 0){
+			std::string user_name = post["name"];
+			std::string passwd = post["passwd"];
+			//TODO 数据库查询 检查登陆请求
+		}
+		else if(strcmp(fileName, "/register.html") == 0){
+			std::string user_name = post["name"];
+			std::string passwd = post["passwd"];
+			//TODO 数据库查询 提交注册请求
+		}
+		return BAD_REQUEST;
 	}
 	else{
 		realPath.append(this->fileName);
@@ -498,26 +509,3 @@ bool http_coon::fillResponse(http_coon::HTTP_CODE ret) {
 	iovCount = 1;
 	return true;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

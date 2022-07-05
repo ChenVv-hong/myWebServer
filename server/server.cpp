@@ -15,7 +15,7 @@ void *thrFunc(void *arg) {
 		return nullptr;
 	}
 	if(!user->fillResponse(ret)){
-		//TODO 直接关闭 如果有定时任务的话 到期又继续关闭
+		//不直接关闭 将canWrite变为false 在 write失败时再关闭
 //		fdRemove(user->ep_fd, user->sock_fd);
 		user->canWrite = false;
 	}

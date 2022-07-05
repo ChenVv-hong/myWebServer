@@ -90,10 +90,10 @@ void http_coon::init() {
 
 	//设置主状态机 初始状态
 	this->checkState = CHECK_STATE_REQUEST_LINE;
-	//TODO 字符串 要不要初始化
-	this->fileName = nullptr;
 
+	this->fileName = nullptr;
 	this->version = nullptr;
+	this->m_content = nullptr;
 }
 
 void http_coon::close_fd() {

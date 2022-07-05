@@ -47,13 +47,13 @@ public:
 	};
 	enum HTTP_CODE
 	{
-		NO_REQUEST,
-		GET_REQUEST,
-		BAD_REQUEST,
-		NO_RESOURCE,
-		FORBIDDEN_REQUEST,
-		FILE_REQUEST,
-		INTERNAL_ERROR,
+		NO_REQUEST = 1,
+		GET_REQUEST = 2,
+		BAD_REQUEST = 400,
+		NO_RESOURCE = 404,
+		FORBIDDEN_REQUEST = 403,
+		FILE_REQUEST = 200,
+		INTERNAL_ERROR = 500,
 		CLOSED_CONNECTION
 	};
 	enum LINE_STATUS
@@ -139,11 +139,11 @@ private:
 	//web服务器的根目录
 	static const char* docRoot;
 	//请求文件
-	std::string fileName;
+	char *fileName;
 	//消息体内容
 	char *m_content;
 	//使用的http协议
-	std::string version;
+	char *version;
 	//是否保持连接
 	bool keepAlive;
 

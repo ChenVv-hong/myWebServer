@@ -160,8 +160,16 @@ void* thread_func(void *arg){
 		}
 		//只要 队列中有任务 就往下执行 即使 线程池关闭 也要把任务队列中的任务处理完
 		//取出任务
-		task t = pool->task_q.front();
-		pool->task_q.pop();
+		int maxTask = std::max(1, (pool->max_tasks_num / pool->live_thr_num));
+		int cnt = 0;
+		std::queue<task> taskList;
+		while(!pool->task_q.empty() && cnt <= maxTask){
+			taskList.push(pool->task_q.front());
+			pool->task_q.pop();
+			cnt++;
+		}
+//		task t = pool->task_q.front();
+//		pool->task_q.pop();
 		pthread_cond_signal(&pool->is_push);    //通知可以 放任务
 		pthread_mutex_unlock(&pool->queue_lock);        //取出任务后 迅速 解锁
 
@@ -171,7 +179,11 @@ void* thread_func(void *arg){
 		pthread_mutex_unlock(&pool->thread_counter_lock);
 //		std::cout << pthread_self() << "开始执行任务！\n";
 		//执行任务
-		t.func(t.arg);
+		while(!taskList.empty()){
+			task t = taskList.front();
+			taskList.pop();
+			t.func(t.arg);
+		}
 //		std::cout << pthread_self() << "任务完成！\n";
 		//任务完成
 		pthread_mutex_lock(&pool->thread_counter_lock);

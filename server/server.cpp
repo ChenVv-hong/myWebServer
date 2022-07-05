@@ -50,11 +50,16 @@ server::server(char *ip, int port) {
 	this->users = new http_coon[MAX_FD];
 	this->cds = new client_data[MAX_FD];
 
-	pool = new thread_pool(6,6,10000, false);
+	pool = new thread_pool(12,12,10000, false);
 }
 
 server::~server() {
-	//TODO
+
+	close(ep_fd);
+	close(lfd);
+	close(pipe_fd[1]);
+	close(pipe_fd[0]);
+
 	delete[] users;
 	delete pool;
 }
@@ -77,9 +82,9 @@ void server::start() {
 				socklen_t client_add_len;
 				int conn_fd = accept(lfd, (sockaddr *)&client_address,&client_add_len);
 
-				char ip[INET_ADDRSTRLEN];
-				inet_ntop(AF_INET, &client_address.sin_addr.s_addr, ip, INET_ADDRSTRLEN);
-				std::cout << "client ip : " << ip << "\nport : " << ntohs(client_address.sin_port) << std::endl;
+//				char ip[INET_ADDRSTRLEN];
+//				inet_ntop(AF_INET, &client_address.sin_addr.s_addr, ip, INET_ADDRSTRLEN);
+//				std::cout << "client ip : " << ip << "\nport : " << ntohs(client_address.sin_port) << std::endl;
 				//初始化新连接
 				initNewConnection(conn_fd, client_address);
 			}

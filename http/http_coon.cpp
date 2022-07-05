@@ -51,8 +51,8 @@ int http_coon::ep_fd = -1;
 const char *http_coon::docRoot = "/var/www/server";
 
 http_coon::http_coon() {
-	this->fileName = "/index.html";
-	this->version = "HTTP/1.1";
+//	this->fileName = "/index.html";
+//	this->version = "HTTP/1.1";
 }
 
 http_coon::~http_coon() {
@@ -91,15 +91,14 @@ void http_coon::init() {
 	//设置主状态机 初始状态
 	this->checkState = CHECK_STATE_REQUEST_LINE;
 	//TODO 字符串 要不要初始化
-	this->fileName.clear();
+	this->fileName = nullptr;
 
-	this->version.clear();
+	this->version = nullptr;
 }
 
 void http_coon::close_fd() {
 	if(this->sock_fd != -1){
 		fdRemove(this->ep_fd, this->sock_fd);
-		close(sock_fd);
 	}
 }
 
@@ -137,31 +136,33 @@ bool http_coon::write() {
 		if(ret <= -1){
 			if(errno == EAGAIN){
 				//tcp发送缓冲区 暂时 没有空位 还有数据要发送 等待下一次 EPOLLOUT 事件
-				if(bytesHaveSend >= this->writeIdx){
-					//iov[0]已近发送完毕
-					this->iov[0].iov_len = 0;
-					if(iovCount == 2){
-						this->iov[1].iov_base = this->fileAddress + (bytesHaveSend - this->writeIdx);
-						this->iov[1].iov_len = bytesToSend;
-					}
-				}
-				else{
-					//iov[0]还没有发送完毕
-					this->iov[0].iov_base = this->writeBuff + bytesHaveSend;
-					this->iov[0].iov_len = this->writeIdx - bytesHaveSend;
-				}
 				fdMode(this->ep_fd, this->sock_fd, EPOLLOUT);
 				return true;
 			}
-			//TODO unmap
+
 			unmap();
 			return false;
 		}
+
 		bytesToSend -= ret;
 		bytesHaveSend += ret;
+
+		if(bytesHaveSend >= this->writeIdx){
+			//iov[0]已近发送完毕
+			this->iov[0].iov_len = 0;
+			if(iovCount == 2){
+				this->iov[1].iov_base = this->fileAddress + (bytesHaveSend - this->writeIdx);
+				this->iov[1].iov_len = bytesToSend;
+			}
+		}
+		else{
+			//iov[0]还没有发送完毕
+			this->iov[0].iov_base = this->writeBuff + bytesHaveSend;
+			this->iov[0].iov_len = this->writeIdx - bytesHaveSend;
+		}
+
 		if(bytesToSend <= 0){
 			//表示需要发送的数据 已经全部发送完毕
-			//TODO unmap
 			unmap();
 			if(this->keepAlive){
 				//保持连接 改为监听 读事件  并且初始化连接
@@ -282,9 +283,9 @@ http_coon::HTTP_CODE http_coon::requestLineParse(char *text) {
 	if (!m_url || m_url[0] != '/') return BAD_REQUEST;
 
 	//目标文件的绝对路径
-	this->fileName.append(m_url);
+	this->fileName = m_url;
 	//当url为/时，显示首页
-	if (strlen(m_url) == 1) this->fileName.append("index.html");
+//	if (strlen(m_url) == 1) this->fileName.append("index.html");
 
 	//主状态及更新
 	checkState = CHECK_STATE_HEADER;
@@ -365,6 +366,7 @@ http_coon::HTTP_CODE http_coon::doRequest() {
 	}
 	else{
 		realPath.append(this->fileName);
+		if(strcmp(this->fileName, "/") == 0) realPath.append("index.html");
 	}
 
 	if(stat(realPath.c_str(),&this->fileStat) < 0){
@@ -471,7 +473,7 @@ bool http_coon::fillResponse(http_coon::HTTP_CODE ret) {
 			addStatusLine(200, ok_200_title);
 			if(fileStat.st_size != 0){
 				addHeaders(fileStat.st_size);
-				std::cout << writeBuff;
+//				std::cout << writeBuff;
 				iov[0].iov_len = writeIdx;
 				iov[0].iov_base = writeBuff;
 				iov[1].iov_base = fileAddress;

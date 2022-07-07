@@ -13,35 +13,35 @@ Linux下轻量级Web服务器，用于巩固网络编程。
 
 #### 项目结构
 
-├── **http** 
-│  ├── http_coon.cpp 
-│  └── http_coon.h 
-├── main.cpp 
-├── README.md 
-├── **resources** 
-│  ├── favicon.ico 
-│  ├── index.html 
-│  ├── loginFail.html 
-│  ├── login.html 
-│  ├── picture.html 
-│  ├── registerFail.html 
-│  ├── register.html 
-│  ├── registerSuccess.html 
-│  ├── video.html 
-│  ├── **video.mp4** 
-│  └── **wallhaven-72lej9.png** 
-├── **server** 
-│  ├── server.cpp 
-│  └── server.h 
-├── **sql** 
-│  ├── sqlConnectionPool.cpp 
-│  └── sqlConnectionPool.h 
-├── **threadpool** 
-│  ├── thread_pool.cpp 
-│  └── thread_pool.h 
-└── **timer** 
-   ├── timer.cpp 
-   └── timer.h
+├── **http** 连接对象文件<br/>
+│  ├── http_coon.cpp<br/> 
+│  └── http_coon.h <br/>
+├── main.cpp <br/>
+├── README.md <br/>
+├── **resources** 资源文件<br/>
+│  ├── favicon.ico <br/>
+│  ├── index.html <br/>
+│  ├── loginFail.html <br/>
+│  ├── login.html <br/>
+│  ├── picture.html <br/>
+│  ├── registerFail.html <br/>
+│  ├── register.html <br/>
+│  ├── registerSuccess.html<br/> 
+│  ├── video.html <br/>
+│  ├── **video.mp4** <br/>
+│  └── **wallhaven-72lej9.png** <br/>
+├── **server** 服务器类<br/>
+│  ├── server.cpp <br/>
+│  └── server.h <br/>
+├── **sql** 数据库连接池<br/>
+│  ├── sqlConnectionPool.cpp <br/>
+│  └── sqlConnectionPool.h <br/>
+├── **threadpool** 线程池<br/>
+│  ├── thread_pool.cpp <br/>
+│  └── thread_pool.h <br/>
+└── **timer** 定时器容器<br/>
+   ├── timer.cpp <br/>
+   └── timer.h<br/>
 
 #### 开发环境
 

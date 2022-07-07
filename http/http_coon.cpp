@@ -380,6 +380,7 @@ http_coon::HTTP_CODE http_coon::doRequest() {
 			else{
 				realPath.append("/loginFail.html");
 			}
+			mysql_free_result(resut);
 		}
 		else if(strcmp(fileName, "/register.html") == 0){
 			std::string user_name = post["name"];

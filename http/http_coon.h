@@ -21,6 +21,7 @@
 #include <sys/uio.h>
 #include <sys/mman.h>
 #include <stdarg.h>
+#include "../sql/sqlConnectionPool.h"
 
 class http_coon {
 public:
@@ -112,6 +113,9 @@ private:
 	bool andLinger();
 	bool addBlankLine();
 	bool addContent(const char*);
+
+	MYSQL_RES* sqlQueryUser(std::string& name, std::string& passwd);
+	bool sqlInsertUser(std::string& name, std::string& passwd);
 public:
 	//每个连接的fd
 	int sock_fd;
@@ -160,6 +164,9 @@ private:
 	struct iovec iov[2];
 
 	int iovCount;
+
+	//数据库相关
+	MYSQL *conn;
 };
 
 

@@ -37,7 +37,7 @@ void sig_handle(int sig) {
 	errno = save_errno;
 }
 
-server::server(char *ip, int port) {
+server::server(char *ip, int port, std::string sqlUrl, int sqlPort, std::string sqlUser, std::string sqlPasswd, std::string databaseName) {
 	strcpy(this->IP, ip);
 	this->PORT = port;
 	this->address.sin_port = htons(this->PORT);
@@ -47,10 +47,21 @@ server::server(char *ip, int port) {
 	this->isRun = false;
 	this->timeout = false;
 
+	//初始化连接相关
 	this->users = new http_coon[MAX_FD];
 	this->cds = new client_data[MAX_FD];
 
+	//初始化 线程池相关
 	pool = new thread_pool(12,12,10000, false);
+
+	//初始化 数据库相关
+	this->m_url = sqlUrl;
+	this->m_Port = sqlPort;
+	this->m_User = sqlUser;
+	this->m_PassWord = sqlPasswd;
+	this->m_DatabaseName = databaseName;
+	sqlPool = connection_pool::GetInstance();
+	sqlPool->init(m_url, m_User, m_PassWord, m_DatabaseName, m_Port, 10);
 }
 
 server::~server() {
@@ -79,14 +90,27 @@ void server::start() {
 			if(sock_fd == lfd){
 				//新连接
 				sockaddr_in client_address;
-				socklen_t client_add_len;
-				int conn_fd = accept(lfd, (sockaddr *)&client_address,&client_add_len);
+				//要初始化 该变量
+				socklen_t client_add_len = sizeof client_address;
+				int conn_fd;
+				while(true){
+					conn_fd = accept(lfd, (sockaddr *)&client_address,&client_add_len);
+					if(conn_fd == -1){
+						if(errno == EINTR){
+							continue;
+						}
+						else perror("accept error");
+					}
+					else{
+						//char ip[INET_ADDRSTRLEN];
+						//inet_ntop(AF_INET, &client_address.sin_addr.s_addr, ip, INET_ADDRSTRLEN);
+				        //std::cout << "client ip : " << ip << "\nport : " << ntohs(client_address.sin_port) << std::endl;
+						//初始化新连接
+						initNewConnection(conn_fd, client_address);
+						break;
+					}
+				}
 
-//				char ip[INET_ADDRSTRLEN];
-//				inet_ntop(AF_INET, &client_address.sin_addr.s_addr, ip, INET_ADDRSTRLEN);
-//				std::cout << "client ip : " << ip << "\nport : " << ntohs(client_address.sin_port) << std::endl;
-				//初始化新连接
-				initNewConnection(conn_fd, client_address);
 			}
 			else if(sock_fd == pipe_fd[0]){
 				//信号源
@@ -150,6 +174,7 @@ void server::start() {
 					timeList.adjustTimer(cds[sock_fd].t);
 
 					if(!users[sock_fd].write()){
+						//短连接 或者写入出错 则断开该连接
 						fdRemove(ep_fd, sock_fd);
 						//删除定时器
 						timeList.delTimer(cds[sock_fd].t);

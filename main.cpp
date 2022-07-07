@@ -2,7 +2,8 @@
 
 
 int main() {
-	server s("127.0.0.1", 9999);
+	char ip[] = "127.0.0.1" ;
+	server s(ip, 9999, "localhost", 3306, "root", "ChenJiaHong123!!", "webServer");
 	s.start();
 	return 0;
 }

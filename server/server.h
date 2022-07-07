@@ -8,6 +8,7 @@
 #include "../http/http_coon.h"
 #include "../threadpool/thread_pool.h"
 #include "../timer/timer.h"
+#include "../sql/sqlConnectionPool.h"
 #include <signal.h>
 #include <assert.h>
 
@@ -23,7 +24,7 @@ class server {
 public:
 
 public:
-	server(char *ip, int port);
+	server(char *ip, int port, std::string sqlUrl, int sqlPort, std::string sqlUser, std::string sqlPasswd, std::string databaseName);
 	~server();
 	server(const server&)=delete;
 	server& operator=(const server&)=delete;
@@ -93,6 +94,14 @@ private:
 	//定时器容器
 	sort_time_list timeList;
 
+	//数据库连接池相关
+	connection_pool *sqlPool;
+
+	std::string m_url;			 //主机地址
+	int m_Port;		 //数据库端口号
+	std::string m_User;		 //登陆数据库用户名
+	std::string m_PassWord;	 //登陆数据库密码
+	std::string m_DatabaseName; //使用数据库名
 };
 
 

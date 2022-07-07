@@ -24,7 +24,7 @@ void setNonBlock(int fd){
 	fcntl(fd, F_SETFL, flag);
 }
 
-//向epoll添加fd 设置 事件触发   ET模式
+//向epoll添加fd 设置 事件触发   ET模式 设置非阻塞
 void fdAdd(int ep, int fd, bool oneShot){
 	epoll_event event;
 	event.data.fd = fd;
@@ -94,6 +94,9 @@ void http_coon::init() {
 	this->fileName = nullptr;
 	this->version = nullptr;
 	this->m_content = nullptr;
+
+	//sql
+	this->conn = nullptr;
 }
 
 void http_coon::close_fd() {
@@ -362,18 +365,31 @@ http_coon::HTTP_CODE http_coon::doRequest() {
 	if(method != GET && method != POST) return BAD_REQUEST;
 	std::string realPath;
 	realPath.append(this->docRoot);
+	//确定响应的文件
 	if(method == POST){
 		if(strcmp(fileName, "/login.html") == 0){
 			std::string user_name = post["name"];
 			std::string passwd = post["passwd"];
-			//TODO 数据库查询 检查登陆请求
+			//数据库查询 检查登陆请求
+			MYSQL_RES *resut = sqlQueryUser(user_name, passwd);
+			if(!resut) return INTERNAL_ERROR;
+			//有查询结果 说明存在该用户
+			if(mysql_fetch_row(resut)){
+				realPath.append("/index.html");
+			}
+			else{
+				realPath.append("/loginFail.html");
+			}
 		}
 		else if(strcmp(fileName, "/register.html") == 0){
 			std::string user_name = post["name"];
 			std::string passwd = post["passwd"];
-			//TODO 数据库查询 提交注册请求
+			//数据库查询 提交注册请求
+			if(sqlInsertUser(user_name, passwd)){
+				realPath.append("/registerSuccess.html");
+			}
+			else return INTERNAL_ERROR;
 		}
-		return BAD_REQUEST;
 	}
 	else{
 		realPath.append(this->fileName);
@@ -507,5 +523,42 @@ bool http_coon::fillResponse(http_coon::HTTP_CODE ret) {
 	iov[0].iov_len = writeIdx;
 	bytesToSend = iov[0].iov_len;
 	iovCount = 1;
+	return true;
+}
+
+MYSQL_RES *http_coon::sqlQueryUser(std::string& name, std::string& passwd) {
+	//先从连接池中取一个连接
+	connection_pool *connPool = connection_pool::GetInstance();
+	//自动获取 释放conn资源
+	connectionRAII mysqlcon(&this->conn, connPool);
+	//在user表中检索username，passwd数据，浏览器端输入
+	char stat[128];
+	memset(stat, 0, sizeof stat);
+	sprintf(stat,"select * from user where username = '%s' and passwd = '%s';", name.c_str(), passwd.c_str());
+	if (mysql_query(this->conn, stat))
+	{
+		perror(mysql_error(this->conn));
+		return nullptr;
+	}
+
+	//从表中检索完整的结果集
+	MYSQL_RES *result = mysql_store_result(this->conn);
+	return result;
+}
+
+bool http_coon::sqlInsertUser(std::string& name, std::string& passwd) {
+	//先从连接池中取一个连接
+	connection_pool *connPool = connection_pool::GetInstance();
+	//自动获取 释放conn资源
+	connectionRAII mysqlcon(&this->conn, connPool);
+	//在user表中插入username 和 passwd 数据
+	char stat[128];
+	memset(stat, 0, sizeof stat);
+	sprintf(stat,"INSERT INTO user(username, passwd) VALUES('%s', '%s');", name.c_str(), passwd.c_str());
+	if (mysql_query(this->conn, stat))
+	{
+		perror(mysql_error(this->conn));
+		return false;
+	}
 	return true;
 }

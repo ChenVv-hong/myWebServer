@@ -53,6 +53,11 @@ Linux下轻量级Web服务器，用于巩固网络编程。
 
 #### 使用运行
 
-将resources目录下的资源文件全部移动到 /var/www/server目录下
-
+将resources目录下的资源文件全部移动到 /var/www/server目录下<br/>
 然后进行编译运行，注意依赖库！
+
+#### TODO
+
+- 日志功能
+- 通过堆数据结构 优化定时器容器
+- 通过使用Mysql的connector/c++ 改写数据库连接池

@@ -76,6 +76,30 @@ server::~server() {
 }
 
 void server::start() {
+	std::cout << "////////////////////////////////////////////////////////////////////\n"
+	             "//                          _ooOoo_                               //\n"
+	             "//                         o8888888o                              //\n"
+	             "//                         88\" . \"88                              //\n"
+	             "//                         (| ^_^ |)                              //\n"
+	             "//                         O\\  =  /O                              //\n"
+	             "//                      ____/`---'\\____                           //\n"
+	             "//                    .'  \\\\|     |//  `.                         //\n"
+	             "//                   /  \\\\|||  :  |||//  \\                        //\n"
+	             "//                  /  _||||| -:- |||||-  \\                       //\n"
+	             "//                  |   | \\\\\\  -  /// |   |                       //\n"
+	             "//                  | \\_|  ''\\---/''  |   |                       //\n"
+	             "//                  \\  .-\\__  `-`  ___/-. /                       //\n"
+	             "//                ___`. .'  /--.--\\  `. . ___                     //\n"
+	             "//              .\"\" '<  `.___\\_<|>_/___.'  >'\"\".                  //\n"
+	             "//            | | :  `- \\`.;`\\ _ /`;.`/ - ` : | |                 //\n"
+	             "//            \\  \\ `-.   \\_ __\\ /__ _/   .-` /  /                 //\n"
+	             "//      ========`-.____`-.___\\_____/___.-`____.-'========         //\n"
+	             "//                           `=---='                              //\n"
+	             "//      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^        //\n"
+	             "//                        简易web服务器                            //\n"
+	             "//            author        ChenVv     2022/07/07                 //\n"
+	             "//            佛祖保佑       永不宕机     永无BUG                    //\n"
+	             "////////////////////////////////////////////////////////////////////\n";
 	eventListen();
 	this->isRun = true;
 	int ret;
@@ -127,6 +151,7 @@ void server::start() {
 						for(int i = 0; i < ret; i++){
 							switch (signals[i]) {
 								case(SIGALRM):{
+									std::cout << "SIGALRM\n";
 									timeout = true;
 									break;
 								}
@@ -235,7 +260,7 @@ void server::eventListen() {
 	// 设置信号处理函数
 	addSig(SIGALRM);
 	addSig(SIGTERM);
-	alarm(SIGALRM);
+	alarm(TIMESLOT);
 }
 
 void server::initNewConnection(int fd, sockaddr_in & clientAddress) {
@@ -265,7 +290,7 @@ void server::addSig(int sig) {
 
 void server::timerHandle() {
 	this->timeList.tick();
-	alarm(SIGALRM);
+	alarm(TIMESLOT);
 }
 
 
